@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { combineReducers, createStore } from 'redux';
+import { Provider, connect } from 'react-redux';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 
@@ -84,7 +85,9 @@ const rootReducer = combineReducers({
   filterState: filterReducer,
 });
 
-const store = createStore(rootReducer);
+const store = createStore(
+  rootReducer,
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 // view layer
 
@@ -122,19 +125,27 @@ function TodoItem({ todo, onToggleTodo}){
   )
 }
 
-function render() {
-  ReactDOM.render(
-    <React.StrictMode>
-      <TodoApp 
-        todos={store.getState().todoState}
-        onToggleTodo={id => store.dispatch(doToggleTodo(id))}
-      />
-    </React.StrictMode>,
-    document.getElementById('root')
-  );
+function mapStateToProps(state) {
+  return {
+    todos: state.todoState,
+  };
 }
 
-store.subscribe(render);
-render();
+function mapDispatchToProps(dispatch) {
+  return {
+    onToggleTodo: id => dispatch(doToggleTodo(id)),
+  }
+}
+
+const ConnectedTodoApp = connect(mapStateToProps, mapDispatchToProps)(TodoApp);
+
+ReactDOM.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <ConnectedTodoApp />
+    </Provider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
 
 serviceWorker.unregister();
